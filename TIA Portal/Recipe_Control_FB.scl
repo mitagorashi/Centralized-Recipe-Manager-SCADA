@@ -1,0 +1,131 @@
+// =========================================================
+// Recipe_Control FB — FINAL MASTER CODE
+// =========================================================
+
+// ── 1. Auto-Load Recipe Timers from Database ──────────────
+"Control_DB".Active_Cap_Time := "Recipe_DB".Recipes["Control_DB".Active_Recipe_Index].Cap_Hold_Time;
+"Control_DB".Active_Label_Time := "Recipe_DB".Recipes["Control_DB".Active_Recipe_Index].Label_Hold_Time;
+
+// ── 2. ONE-SHOT: Auto-Load Speed ONLY on Recipe Change ────
+IF "Control_DB".Active_Recipe_Index <> #Last_Recipe_Index THEN
+    // Grab the new speed from the database just this once
+    "Control_DB".Conveyor_Speed_Pct := "Recipe_DB".Recipes["Control_DB".Active_Recipe_Index].Conveyor_Speed_Pct;
+    
+    // Update the memory so this block shuts off and lets the SCADA slider work
+    #Last_Recipe_Index := "Control_DB".Active_Recipe_Index;
+END_IF;
+
+// ── 3. Stop everything when line is off ───────────────────
+IF NOT "Control_DB".Line_Running THEN
+    "Capper_Extend" := FALSE;
+    "Labeler_Extend" := FALSE;
+    "Conveyor_Speed" := REAL#0.0;
+    #Cap_State := 0;
+    #Label_State := 0;
+    #Cap_Timer(IN := FALSE,
+               PT := T#1ms);
+    #Label_Timer(IN := FALSE,
+                 PT := T#1ms);
+    RETURN;
+END_IF;
+
+// ── 4. Emitter and Remover ────────────────────────────────
+"Emitter_Enable" := "Control_DB".Line_Running;
+"Remover_Enable" := "Control_DB".Line_Running;
+
+// ── 5. Cap pusher state machine (Sensor-Centering) ────────
+CASE #Cap_State OF
+        
+    0: // Waiting — belt running at SCADA slider speed
+        "Capper_Extend" := FALSE;
+        "Conveyor_Speed" := REAL#3.0 * INT_TO_REAL("Control_DB".Conveyor_Speed_Pct) / REAL#100.0;
+        #Cap_Timer(IN := FALSE,
+                   PT := T#1ms);
+        
+        // As soon as the sensor hits, instantly jump to Capping
+        IF "Box_AtFill" THEN
+            #Cap_State := 2;
+        END_IF;
+        
+    2: // Stop belt and extend pusher — SCADA RECIPE HOLD TIME
+        "Conveyor_Speed" := REAL#0.0;
+        "Capper_Extend" := TRUE;
+        #Cap_Timer(IN := TRUE,
+                   PT := DINT_TO_TIME(INT_TO_DINT("Control_DB".Active_Cap_Time)));
+        
+        IF #Cap_Timer.Q THEN
+            #Cap_Timer(IN := FALSE,
+                       PT := T#1ms);
+            #Cap_State := 3;
+        END_IF;
+        
+    3: // Retract pusher
+        "Conveyor_Speed" := REAL#0.0;
+        "Capper_Extend" := FALSE;
+        #Cap_Timer(IN := TRUE,
+                   PT := T#800ms);
+        IF #Cap_Timer.Q THEN
+            #Cap_Timer(IN := FALSE,
+                       PT := T#1ms);
+            #Cap_State := 4;
+        END_IF;
+        
+    4: // Wait for box to clear then resume at SCADA slider speed
+        "Conveyor_Speed" := REAL#3.0 * INT_TO_REAL("Control_DB".Conveyor_Speed_Pct) / REAL#100.0;
+        "Capper_Extend" := FALSE;
+        #Cap_Timer(IN := TRUE,
+                   PT := T#1500ms);
+        IF #Cap_Timer.Q AND NOT "Box_AtFill" THEN
+            #Cap_Timer(IN := FALSE,
+                       PT := T#1ms);
+            #Cap_State := 0;
+        END_IF;
+        
+END_CASE;
+
+// ── 6. Label pusher state machine (Sensor-Centering) ──────
+CASE #Label_State OF
+        
+    0: // Waiting — belt running
+        "Labeler_Extend" := FALSE;
+        #Label_Timer(IN := FALSE,
+                     PT := T#1ms);
+        
+        // As soon as the sensor hits, instantly jump to Labeling
+        IF "Box_AtLabel" THEN
+            #Label_State := 2;
+        END_IF;
+        
+    2: // Extend pusher and hold — SCADA RECIPE HOLD TIME
+        "Labeler_Extend" := TRUE;
+        #Label_Timer(IN := TRUE,
+                     PT := DINT_TO_TIME(INT_TO_DINT("Control_DB".Active_Label_Time)));
+        
+        IF #Label_Timer.Q THEN
+            #Label_Timer(IN := FALSE,
+                         PT := T#1ms);
+            "Control_DB".Product_Count := "Control_DB".Product_Count + 1;
+            #Label_State := 3;
+        END_IF;
+        
+    3: // Retract pusher
+        "Labeler_Extend" := FALSE;
+        #Label_Timer(IN := TRUE,
+                     PT := T#800ms);
+        IF #Label_Timer.Q THEN
+            #Label_Timer(IN := FALSE,
+                         PT := T#1ms);
+            #Label_State := 4;
+        END_IF;
+        
+    4: // Wait for box to clear then reset
+        "Labeler_Extend" := FALSE;
+        #Label_Timer(IN := TRUE,
+                     PT := T#1500ms);
+        IF #Label_Timer.Q AND NOT "Box_AtLabel" THEN
+            #Label_Timer(IN := FALSE,
+                         PT := T#1ms);
+            #Label_State := 0;
+        END_IF;
+        
+END_CASE;

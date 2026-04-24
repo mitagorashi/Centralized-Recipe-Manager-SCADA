@@ -1,13 +1,20 @@
 # 🏭 Centralized Recipe Manager SCADA
 ### Factory I/O · TIA Portal S7-1500 · Modbus TCP · Ignition Perspective
-
+<p align="center">
+  <img src="https://img.shields.io/badge/Siemens-TIA_Portal_v18-009999?style=for-the-badge&logo=siemens&logoColor=white" alt="Siemens TIA Portal" />
+  <img src="https://img.shields.io/badge/SCADA-Ignition_Perspective-F58025?style=for-the-badge" alt="Ignition SCADA" />
+  <img src="https://img.shields.io/badge/Protocol-Modbus_TCP-005288?style=for-the-badge" alt="Modbus TCP" />
+  <img src="https://img.shields.io/badge/Language-SCL_(Structured_Control_Language)-blue?style=for-the-badge" alt="SCL" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Simulation-Factory_I%2FO-4D4D4D?style=for-the-badge" alt="Factory I/O" />
+</p>
 > A fully operational industrial recipe management system built on a simulated S7-1500 PLC, controlling a live Factory I/O filling & packaging line through a professional Ignition SCADA dashboard — with bidirectional Modbus TCP communication and real-time recipe switching.
 
 ---
 
 ## 📽️ Demo Video
 
-> **[▶ Watch Full Demo on YouTube](YOUR_YOUTUBE_LINK_HERE)**
+> **[▶ Watch Full Demo on YouTube]((https://youtu.be/MIh4xIncnIs))**
 
 *Select Oil 1L → hit Activate → watch the belt slow from 60% to 25% in real time while both processing stations adjust their hold times. The product counter updates live on the dashboard.*
 
@@ -17,7 +24,6 @@
 
 ## 🗺️ System Architecture
 
-![Architecture Diagram](assets/screenshots/architecture_diagram.png)
 
 ```
 ┌─────────────────┐     S7-PLCSIM     ┌──────────────────────────┐
@@ -111,7 +117,6 @@
 recipe-manager-scada/
 ├── tia_portal/
 │   ├── RecipeManager.ap18          # TIA Portal project export
-│   ├── Recipe_Type_UDT.xml         # UDT export for reference
 │   └── Recipe_Control_FB.scl       # SCL function block source
 ├── ignition/
 │   └── RecipeManager_export.zip    # Ignition project export

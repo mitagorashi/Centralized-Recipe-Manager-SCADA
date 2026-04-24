@@ -346,7 +346,7 @@ Modbus cannot address nested UDT arrays with variable offsets in a single transa
 ## 👨‍💻 Author
 
 **Mohamed Gorashi**
-MSc Automation Engineering — Erasmus+ at Politehnica University of Bucharest
+MSc Electrical Electronics Eng
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Mohamed%20Gorashi-blue?logo=linkedin)](https://www.linkedin.com/in/mohamed-gorashi-4aa3a9197/)
 [![GitHub](https://img.shields.io/badge/GitHub-mitagorashi-black?logo=github)](https://github.com/mitagorashi)

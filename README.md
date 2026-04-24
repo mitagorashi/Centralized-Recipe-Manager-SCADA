@@ -14,7 +14,7 @@
 
 ## 📽️ Demo Video
 
-> **[▶ Watch Full Demo on YouTube]((https://youtu.be/MIh4xIncnIs))**
+> **[▶ Watch Full Demo on YouTube](https://youtu.be/MIh4xIncnIs)**
 
 *Select Oil 1L → hit Activate → watch the belt slow from 60% to 25% in real time while both processing stations adjust their hold times. The product counter updates live on the dashboard.*
 
